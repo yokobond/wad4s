@@ -1,0 +1,1 @@
+[{n:"destination",x:365,y:63,mode:0,ver:1,W:800,H:600},{n:"gai1",x:195,y:58,c:["destination"]},{n:"osc1",x:14,y:58,p:{frequency:261.626,detune:-100},c:["gai1"]}]
