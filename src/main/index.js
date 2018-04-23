@@ -2,9 +2,9 @@
 
 import { app, BrowserWindow, Menu, MenuItem, dialog, ipcMain, shell } from 'electron'
 import * as path from 'path'
-import { format as formatUrl } from 'url'
+import * as fs from 'fs'
 
-const isDevelopment = process.env.NODE_ENV !== 'production'
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const WAD4SServer = require('./WAD4SServer');
 
@@ -65,11 +65,18 @@ const createMainWindow = () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         width: 1024,
-        height: 768
+        height: 768,
+        show: false
     });
 
     // and load the index.html of the app.
     mainWindow.loadURL(`file://${__static}/AudioWindow/index.html`);
+    mainWindow.once('ready-to-show', () => {
+        if (graphFilePath) {
+            mainWindow.webContents.send('loadPatchFromFile', graphFilePath);
+        }
+        mainWindow.show();
+    });
 
     // Emitted when the window to close.
     mainWindow.on('close', (event) => {
@@ -126,7 +133,7 @@ let template = [{
             accelerator: 'CmdOrCtrl+o',
             click: (item, focusedWindow) => {
                 if (focusedWindow) {
-                    focusedWindow.webContents.send('loadGraphFromFile');
+                    focusedWindow.webContents.send('openPatchFromFile');
                 }
             }
         }, {
@@ -152,6 +159,69 @@ let template = [{
                 if (focusedWindow) {
                     focusedWindow.webContents.send('saveGraphAs');
                 }
+            }
+        }, {
+            label: 'Get Scratch2 Extension',
+            accelerator: '',
+            click: function (item, focusedWindow) {
+                dialog.showSaveDialog(
+                    focusedWindow,
+                    {
+                        properties: ['openFile'],
+                        filters: [
+                            {
+                                name: 'Scratch2 Extension',
+                                extensions: ['s2e']
+                            }
+                        ],
+                        defaultPath: '*/wad4s'
+                    },
+                    (path) => {
+                        if (path) {
+                            let s2e = JSON.stringify({
+                                "extensionName": "WebAudio Designer",
+                                "extensionPort": 4848,
+                                "url": "https://github.com/yokobond/wad4s",
+                                "blockSpecs": [
+                                    [
+                                        " ",
+                                        "set parameter %s to %n",
+                                        "setParameter",
+                                        "osc1.frequency",
+                                        1.0
+                                    ],
+                                    [
+                                        " ",
+                                        "play all",
+                                        "playAll"
+                                    ],
+                                    [
+                                        " ",
+                                        "stop all",
+                                        "stopAll"
+                                    ],
+                                    [
+                                        " ",
+                                        "play %s",
+                                        "playNode",
+                                        "osc1"
+                                    ],
+                                    [
+                                        " ",
+                                        "stop %s",
+                                        "stopNode",
+                                        "osc1"
+                                    ]
+                                ]
+                            }, null, 2);
+                            fs.writeFile(path, s2e, (error) => {
+                                if (error) {
+                                    dialog.showErrorBox('Save Error', 'Error: ' + error);
+                                }
+                            });
+                        }
+                    }
+                );
             }
         }
     ]
@@ -410,6 +480,17 @@ ipcMain.on('isModified', (event, boolean) => {
     isModified = boolean;
 });
 
+let graphFilePath = null;
+
+// Openf file on MacOS
+app.on('open-file', (event, path) => {
+    event.preventDefault();
+    if (mainWindow) {
+        mainWindow.webContents.send('loadPatchFromFile', path);
+    } else {
+        graphFilePath = path;
+    }
+});
 
 // Scratch Remote Sensor Connection
 

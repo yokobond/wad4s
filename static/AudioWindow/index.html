@@ -1,576 +1,713 @@
 <!doctype html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>WebAudio Designer for Scratch</title>
-<script src="WebAudioDesigner/webcomponents/webcomponents.min.js"></script>
-<link rel="import" href="WebAudioDesigner/webcomponents/polymer.html">
-<link rel="import" href="WebAudioDesigner/webcomponents/controls.html">
-<link href='https://fonts.googleapis.com/css?family=Audiowide' rel='stylesheet' type='text/css'>
-<script src="WebAudioDesigner/mml-emitter.min.js"></script>
-<script src="WebAudioDesigner/webaudiodesigner.js"></script>
-	<script language="JavaScript" type="text/javascript">
-		function initialize() {
-          Init(); // Initialize WebAudio Designer.
-          var wadAdapter = require('./WebAudioDesigner-adapter')(graph);
-          document.body.ondragover = function () {
-              return false;
-          };
-          document.body.ondragleave = document.body.ondragend = function () {
-              return false;
-          };
-          document.body.ondrop = function (e) {
-              e.preventDefault();
-              var file = e.dataTransfer.files[0];
-              console.log(file.name.split('.').pop());
-              if (file.name.split('.').pop() == 'wad') {
-                  wadAdapter.loadGraphData(file.path);
-			  }
-              return false;
-          };
-        }
-	</script>
-<style>
-body{
-	margin:0;
-	font-family:Verdana, sans-serif;
-	font-size:9px;
-	font-weight:bold;
-	user-select:none;
-	-webkit-user-select:none;
-	-moz-user-select:none;
-}
-svg{
-	width:20px;
-	height:20px;
-}
-#base{
-	position:relative;
-	background:#346;
-	margin:0;
-	overflow:hidden;
-}
-#canvas{
-	position:absolute;
-}
-#menu{
-	position:absolute;
-	background:rgba(0,0,0,0.3);
-	top:54px;
-	left:0px;
-	margin:0px;
-	padding:5px;
-}
-.mainmenubtn{
-	width:120px;
-	padding:5px;
-}
-.menudropdown{
-	width:170px;
-}
-.menuitem{
-	z-index:200;
-	width:160px;
-	padding:5px;
-	margin:0px;
-	position:relative;
-	border:1px solid #666;
-}
-.menuitem:hover{
-	background:#ffc;
-}
-.menuitem div{
-	background:#fff;
-	position:absolute;
-	opacity:0.0;
-	padding:5px;
-	left:-1000px;
-	top:-1000px;
-	transition:opacity 1s linear 1s;
-}
-.menuitem:hover div{
-	left:155px;
-	top:-40px;
-	opacity:1;
-	display:block;
-	width:300px;
-}
-#menugraph{
-	background:rgba(0,0,0,0.3);
-	position:absolute;
-	left:130px;
-	padding:5px;
-	display:none;
-	text-align:center;
-}
-#menunode{
-	background:rgba(0,0,0,0.3);
-	position:absolute;
-	left:130px;
-	padding:5px;
-	display:none;
-	text-align:center;
-}
-#menuctrl{
-	background:rgba(0,0,0,0.3);
-	position:absolute;
-	left:260px;
-	padding:5px;
-	display:none;
-	text-align:center;
-}
-#popup{
-	background:rgba(0,0,0,0.3);
-	padding:5px;
-	position:absolute;
-	display:none;
-}
-#popup2{
-	background:rgba(0,0,0,0.3);
-	padding:5px;
-	position:absolute;
-	display:none;
-}
-#urlpane{
-	z-index:200;
-	position:absolute;
-	display:none;
-	background:#667;
-	left:7%;
-	top:20%;
-	width:80%;
-	height:200px;
-	border:1px solid #000;
-	color:#fff;
-	padding:10px;
-}
-#url{
-	position:absolute;
-	display:block;
-	top:65px;
-	left:5%;
-	background:#ffd;
-	width:90%;
-	height:120px;
-	font-family:Verdana,sans-serif;
-	font-size:10px;
-	font-weight:normal;
-}
-#aboutpane{
-	z-index:200;
-	position:absolute;
-	display:none;
-	background:#bbd;
-	top:100px;
-	left:7%;
-	width:80%;
-	height:50%;
-	padding:30px 20px;
-	color:#000;
-	border:1px solid #000;
-	overflow:scroll;
-}
-#jspane{
-	z-index:200;
-	position:absolute;
-	display:none;
-	background:#667;
-	top:15%;
-	left:10%;
-	width:80%;
-	height:80%;
-	border:1px solid #000;
-	padding:10px;
-}
-#jsfile{
-	position:absolute;
-	display:block;
-	top:15%;
-	left:3%;
-	background:#ffd;
-	width:94%;
-	height:80%;
-	font-family:Verdana,sans-serif;
-	font-size:10px;
-	font-weight:normal;
-}
-#files{
-	background:#ccf;
-	padding:10px;
-	font-family:Verdana,sans-serif;
-	font-size:10px;
-	font-weight:normal;
-}
-#aboutpane table{
-	border:1px solid #888;
-}
-#aboutpane table td{
-	border:1px solid #888;
-}
-#loading{
-	position:absolute;
-	background:#ccf;
-	font-size:15px;
-	top:40%;
-	left:40%;
-	width:10%;
-	height:10%;
-	padding:30px 20px;
-	color:#000;
-	border:1px solid #000;
-	border-radius:10px;
-	text-align:center;
-}
-#layoutbase{
-	position:absolute;
-	display:none;
-	left:128px;
-	top:64px;
-	width:800px;
-	height:600px;
-	background:linear-gradient(#888 0%,#eee 5%,#ccc 97%,#444 100%);
-	border-radius:10px;
-	border:2px solid #333;
-}
-dialog::backdrop {
-	position: fixed;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.4);
-}
-.node{
-	position:absolute;
-	background:#000;
-	width:120px;
-	height:80px;
-	left:500px;
-	top:300px;
-	cursor:default;
-	padding:0px;
-	margin:0px;
-	box-shadow: 2px 2px 5px 3px rgba(0,0,0,0.4);
-	border-radius:4px;
-}
-.titlebar{
-	position:absolute;
-	background:linear-gradient(#dfa,#bc7);
-	height:19px;
-	padding:0px 0px 0px 18px;
-	margin:0px;
-	border-radius:4px 4px 0px 0px;
-	overflow:hidden;
-}
-.io{
-	position:absolute;
-	background:#abf;
-	height:19px;
-	padding:0px;
-	margin:0px;
-}
-.nodebtn{
-	position:absolute;
-	background:#fc4;
-	width:14px;
-	height:14px;
-	border:1px solid #000;
-}
-.playbtn{
-	position:absolute;
-	background:#ccc;
-	border:1px solid #000;
-}
-.anabtn{
-	position:absolute;
-	background:#ccc;
-	border:1px solid #000;
-	text-align:center;
-}
-.param{
-	position:absolute;
-	background:linear-gradient(#eee,#ccc);
-	padding:0px 0px 0px 4px;
-}
-.param .tooltip{
-	display:none;
-	background:#fff;
-	position:absolute;
-	opacity:0.0;
-	padding:5px;
-	left:-1000px;
-	top:0px;
-	width:200px;
-	height:20px;
-	overflow:hidden;
-	transition:opacity 1s linear 0s;
-	border-radius:5px;
-	font-weight:normal;
-	text-align:center;
-}
-.param:hover .tooltip{
-/*	left:20px;
-	top:40px;*/
-	opacity:0.8;
-}
-.edit{
-	position:absolute;
-	text-align:center;
-	font-family:Verdana, sans-serif;
-	font-size:9px;
-/*	border-radius:4px;*/
-}
-.edittextarea{
-	position:absolute;
-	text-align:center;
-	font-family:Verdana, sans-serif;
-	font-size:9px;
-/*	border-radius:4px;*/
-}
-.knobpane{
-	position:absolute;
-	top:81px;
-	left:1px;
-	padding:5px 10px;
-	background:#888;
-	border-radius:0px 0px 4px 4px;
-}
-.knoblabel{
-	position:absolute;
-	top:140px;
-	left:0px;
-	text-align:center;
-	width:70px;
-	display:none;
-}
-.keypane{
-	position:absolute;
-	top:41px;
-	left:1px;
-	border-radius:0px 0px 4px 4px;
-}
-.label{
-	position:absolute;
-}
-.conn{
-	position:absolute;
-}
-.conn .mark{
-	display:none;
-}
-#connokmark{
-	position:absolute;
-	width:20px;
-	height:20px;
-	border:2px solid #fff;
-	border-radius:12px;
-	top:100px;
-	left:100px;
-	display:none;
-}
-#connngmark{
-	position:absolute;
-	width:20px;
-	height:20px;
-	top:100px;
-	left:100px;
-	display:none;
-}
-#text{
-	position:absolute;
-	display:none;
-	font-size:11px;
-}
-.title{
-	display:inline-block;
-	font-size: 35px;
-	font-family: Audiowide;
-	font-weight:normal;
-	margin:0px 10px;
-	padding:0px;
-}
-.desc{
-	display:inline-block;
-	font-size: 15px;
-	font-family: sans-serif;
-	margin:0px;
-	padding:0px;
-}
-.desc a{
-	color:#eef;
-}
-#header{
-	background: #ff9900;
-	color:#eef;
-	border:1px solid #000;
-	padding:4px;
-}
-#header img{
-	margin-right:20px
-}
-#wmark{
-	position:absolute;
-	top:592px;
-	left:792px;
-	border:1px solid #000;
-	width:16px;
-	height:16px;
-}
+    <meta charset="utf-8">
+    <title>WebAudio Designer for Scratch</title>
+    <script src="WebAudioDesigner/webcomponents/webcomponents.min.js"></script>
+    <link rel="import" href="WebAudioDesigner/webcomponents/polymer.html">
+    <link rel="import" href="WebAudioDesigner/webcomponents/controls.html">
+    <link href='https://fonts.googleapis.com/css?family=Audiowide' rel='stylesheet' type='text/css'>
+    <script src="WebAudioDesigner/mml-emitter.min.js"></script>
+    <script src="WebAudioDesigner/webaudiodesigner.js"></script>
+    <script language="JavaScript" type="text/javascript">
+        let wadStartInterval;
+        let wadAdapter;
 
-dialog {
-	border: solid 1px #aaa;
-	border-radius: 5px;
-	box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.3);
-}
-</style>
+        function initialize() {
+            AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioctx = new AudioContext();
+            graph = new Graph(document.getElementById("cv"), audioctx, audioctx.destination);
+            document.getElementById("base").addEventListener("mousedown", MouseDown);
+            document.getElementById("base").addEventListener("mousemove", MouseMove);
+            document.getElementById("base").addEventListener("mouseup", MouseUp);
+            window.addEventListener("resize", graph.Resize);
+            graph.Resize();
+            wadStartInterval = setInterval(WADStartIfReady, 100);
+            let WADAdapter = require('./WADAdapter');
+            wadAdapter = new WADAdapter(graph, document);
+        }
+
+        function WADStartIfReady() {
+            if (graph.buffers._ready) {
+                clearInterval(wadStartInterval);
+                WADStart();
+            }
+        }
+        function WADStart() {
+            wadAdapter.loadDefaultPatch();
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Verdana, sans-serif;
+            font-size: 9px;
+            font-weight: bold;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+        }
+
+        svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        #base {
+            position: relative;
+            background: #346;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #canvas {
+            position: absolute;
+        }
+
+        #menu {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.3);
+            top: 54px;
+            left: 0px;
+            margin: 0px;
+            padding: 5px;
+        }
+
+        .mainmenubtn {
+            width: 120px;
+            padding: 5px;
+        }
+
+        .menudropdown {
+            width: 170px;
+        }
+
+        .menuitem {
+            z-index: 200;
+            width: 160px;
+            padding: 5px;
+            margin: 0px;
+            position: relative;
+            border: 1px solid #666;
+        }
+
+        .menuitem:hover {
+            background: #ffc;
+        }
+
+        .menuitem div {
+            background: #fff;
+            position: absolute;
+            opacity: 0.0;
+            padding: 5px;
+            left: -1000px;
+            top: -1000px;
+            transition: opacity 1s linear 1s;
+        }
+
+        .menuitem:hover div {
+            left: 155px;
+            top: -40px;
+            opacity: 1;
+            display: block;
+            width: 300px;
+        }
+
+        #menugraph {
+            background: rgba(0, 0, 0, 0.3);
+            position: absolute;
+            left: 130px;
+            padding: 5px;
+            display: none;
+            text-align: center;
+        }
+
+        #menunode {
+            background: rgba(0, 0, 0, 0.3);
+            position: absolute;
+            left: 130px;
+            padding: 5px;
+            display: none;
+            text-align: center;
+        }
+
+        #menuctrl {
+            background: rgba(0, 0, 0, 0.3);
+            position: absolute;
+            left: 260px;
+            padding: 5px;
+            display: none;
+            text-align: center;
+        }
+
+        #popup {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            position: absolute;
+            display: none;
+        }
+
+        #popup2 {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            position: absolute;
+            display: none;
+        }
+
+        #urlpane {
+            z-index: 200;
+            position: absolute;
+            display: none;
+            background: #667;
+            left: 7%;
+            top: 20%;
+            width: 80%;
+            height: 200px;
+            border: 1px solid #000;
+            color: #fff;
+            padding: 10px;
+        }
+
+        #url {
+            position: absolute;
+            display: block;
+            top: 65px;
+            left: 5%;
+            background: #ffd;
+            width: 90%;
+            height: 120px;
+            font-family: Verdana, sans-serif;
+            font-size: 10px;
+            font-weight: normal;
+        }
+
+        #aboutpane {
+            z-index: 200;
+            position: absolute;
+            display: none;
+            background: #bbd;
+            top: 100px;
+            left: 7%;
+            width: 80%;
+            height: 50%;
+            padding: 30px 20px;
+            color: #000;
+            border: 1px solid #000;
+            overflow: scroll;
+        }
+
+        #jspane {
+            z-index: 200;
+            position: absolute;
+            display: none;
+            background: #667;
+            top: 15%;
+            left: 10%;
+            width: 80%;
+            height: 80%;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+
+        #jsfile {
+            position: absolute;
+            display: block;
+            top: 15%;
+            left: 3%;
+            background: #ffd;
+            width: 94%;
+            height: 80%;
+            font-family: Verdana, sans-serif;
+            font-size: 10px;
+            font-weight: normal;
+        }
+
+        #files {
+            background: #ccf;
+            padding: 10px;
+            font-family: Verdana, sans-serif;
+            font-size: 10px;
+            font-weight: normal;
+        }
+
+        #aboutpane table {
+            border: 1px solid #888;
+        }
+
+        #aboutpane table td {
+            border: 1px solid #888;
+        }
+
+        #loading {
+            position: absolute;
+            background: #ccf;
+            font-size: 15px;
+            top: 40%;
+            left: 40%;
+            width: 10%;
+            height: 10%;
+            padding: 30px 20px;
+            color: #000;
+            border: 1px solid #000;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        #layoutbase {
+            position: absolute;
+            display: none;
+            left: 128px;
+            top: 64px;
+            width: 800px;
+            height: 600px;
+            background: linear-gradient(#888 0%, #eee 5%, #ccc 97%, #444 100%);
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
+
+        dialog::backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .node {
+            position: absolute;
+            background: #000;
+            width: 120px;
+            height: 80px;
+            left: 500px;
+            top: 300px;
+            cursor: default;
+            padding: 0px;
+            margin: 0px;
+            box-shadow: 2px 2px 5px 3px rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+        }
+
+        .titlebar {
+            position: absolute;
+            background: linear-gradient(#dfa, #bc7);
+            height: 19px;
+            padding: 0px 0px 0px 18px;
+            margin: 0px;
+            border-radius: 4px 4px 0px 0px;
+            overflow: hidden;
+        }
+
+        .io {
+            position: absolute;
+            background: #abf;
+            height: 19px;
+            padding: 0px;
+            margin: 0px;
+        }
+
+        .nodebtn {
+            position: absolute;
+            background: #fc4;
+            width: 14px;
+            height: 14px;
+            border: 1px solid #000;
+        }
+
+        .playbtn {
+            position: absolute;
+            background: #ccc;
+            border: 1px solid #000;
+        }
+
+        .anabtn {
+            position: absolute;
+            background: #ccc;
+            border: 1px solid #000;
+            text-align: center;
+        }
+
+        .param {
+            position: absolute;
+            background: linear-gradient(#eee, #ccc);
+            padding: 0px 0px 0px 4px;
+        }
+
+        .param .tooltip {
+            display: none;
+            background: #fff;
+            position: absolute;
+            opacity: 0.0;
+            padding: 5px;
+            left: -1000px;
+            top: 0px;
+            width: 200px;
+            height: 20px;
+            overflow: hidden;
+            transition: opacity 1s linear 0s;
+            border-radius: 5px;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        .param:hover .tooltip {
+            /*	left:20px;
+                top:40px;*/
+            opacity: 0.8;
+        }
+
+        .edit {
+            position: absolute;
+            text-align: center;
+            font-family: Verdana, sans-serif;
+            font-size: 9px;
+            /*	border-radius:4px;*/
+        }
+
+        .edittextarea {
+            position: absolute;
+            text-align: center;
+            font-family: Verdana, sans-serif;
+            font-size: 9px;
+            /*	border-radius:4px;*/
+        }
+
+        .knobpane {
+            position: absolute;
+            top: 81px;
+            left: 1px;
+            padding: 5px 10px;
+            background: #888;
+            border-radius: 0px 0px 4px 4px;
+        }
+
+        .knoblabel {
+            position: absolute;
+            top: 140px;
+            left: 0px;
+            text-align: center;
+            width: 70px;
+            display: none;
+        }
+
+        .keypane {
+            position: absolute;
+            top: 41px;
+            left: 1px;
+            border-radius: 0px 0px 4px 4px;
+        }
+
+        .label {
+            position: absolute;
+        }
+
+        .conn {
+            position: absolute;
+        }
+
+        .conn .mark {
+            display: none;
+        }
+
+        #connokmark {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 12px;
+            top: 100px;
+            left: 100px;
+            display: none;
+        }
+
+        #connngmark {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 100px;
+            left: 100px;
+            display: none;
+        }
+
+        #text {
+            position: absolute;
+            display: none;
+            font-size: 11px;
+        }
+
+        .title {
+            display: inline-block;
+            font-size: 35px;
+            font-family: Audiowide;
+            font-weight: normal;
+            margin: 0px 10px;
+            padding: 0px;
+        }
+
+        .desc {
+            display: inline-block;
+            font-size: 15px;
+            font-family: sans-serif;
+            margin: 0px;
+            padding: 0px;
+        }
+
+        .desc a {
+            color: #eef;
+        }
+
+        #header {
+            background: #ff9900;
+            color: #eef;
+            border: 1px solid #000;
+            padding: 4px;
+        }
+
+        #header img {
+            margin-right: 20px
+        }
+
+        #wmark {
+            position: absolute;
+            top: 592px;
+            left: 792px;
+            border: 1px solid #000;
+            width: 16px;
+            height: 16px;
+        }
+
+        dialog {
+            border: solid 1px #aaa;
+            border-radius: 5px;
+            box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.3);
+        }
+    </style>
 </head>
 <body onload="initialize()">
 <div id="header">
-	<div class="title">WebAudio Designer for Scratch</div>
-	<div class="desc"><a href="https://github.com/g200kg/webaudiodesigner" target="_blank">WebAudio Designer</a> controlled by <a href="https://scratch.mit.edu/scratch2download/" target="_blank">Scratch2</a></div>
+    <div class="title">WebAudio Designer for Scratch</div>
+    <div class="desc"><a href="https://github.com/g200kg/webaudiodesigner" target="_blank">WebAudio Designer</a>
+        controlled by <a href="https://scratch.mit.edu/scratch2download/" target="_blank">Scratch2</a></div>
 </div>
 <div id="base">
-	<canvas id="canvas" width="1024" height="768"></canvas>
-	<div id="layoutbase">
-		<div id="wmark"></div>
-	</div>
-	<div id="ins"></div>
-	<div id="connokmark" class="conn"></div>
-	<div id="connngmark" class="conn"><svg width="20" height="20"><path d='M0,0 L20,20 M0,20,L20,0' stroke="#f00" stroke-width="2"></path></svg></div>
+    <canvas id="canvas" width="1024" height="768"></canvas>
+    <div id="layoutbase">
+        <div id="wmark"></div>
+    </div>
+    <div id="ins"></div>
+    <div id="connokmark" class="conn"></div>
+    <div id="connngmark" class="conn">
+        <svg width="20" height="20">
+            <path d='M0,0 L20,20 M0,20,L20,0' stroke="#f00" stroke-width="2"></path>
+        </svg>
+    </div>
 </div>
-	<textarea id="text" spellcheck="false"></textarea>
-	<datalist id="urllist">
-		<option value="samples/kerokeroshiyouyo.mp3"></option>
-		<option value="http://www.g200kg.com/music/kinounokoto.mp3"></option>
-		<option value="http://www.g200kg.com/music/sabire.mp3"></option>
-		<option value="http://www.g200kg.com/music/omottemitari.mp3"></option>
-	</datalist>
-	<datalist id="fxlist">
-		<option value="440*Math.pow(2,(x+y-69)/12)">note to freq</option>
-		<option value="(x+y-69)*100">note to detune</option>
-		<option value="x*y">multiply</option>
-		<option value="x+y">add</option>
-	</datalist>
+<textarea id="text" spellcheck="false"></textarea>
+<datalist id="urllist">
+    <option value="samples/kerokeroshiyouyo.mp3"></option>
+    <option value="http://www.g200kg.com/music/kinounokoto.mp3"></option>
+    <option value="http://www.g200kg.com/music/sabire.mp3"></option>
+    <option value="http://www.g200kg.com/music/omottemitari.mp3"></option>
+</datalist>
+<datalist id="fxlist">
+    <option value="440*Math.pow(2,(x+y-69)/12)">note to freq</option>
+    <option value="(x+y-69)*100">note to detune</option>
+    <option value="x*y">multiply</option>
+    <option value="x+y">add</option>
+</datalist>
 <div id="menu">
-	<button class="mainmenubtn" id="playbtn">Start<!-- <svg width="20" height="10"><polygon id="playpgn" points="10,0 10,10 20,5" fill="green"/></svg>--></button>
-	<!--<button class="mainmenubtn" id="menugraphbtn">Graph</button>-->
-	<div class="menudropdown" id="menugraph">
-		<button class="menuitem" id="newgraph">New Graph</button>
-		<button class="menuitem" id="export">Export as JavaScript file</button>
-		<button class="menuitem" id="link">Link to this graph</button>
-		<button class="menuitem" id="design">Design Mode</button>
-		<button class="menuitem" id="layout">Layout Mode</button>
-		<button class="menuitem" id="test">Play Mode</button>
-	</div>
-	<button class="mainmenubtn" id="menunodebtn">Add Node</button>
-	<div class="menudropdown" id="menunode">
-		<button class="menuitem" id="addosc">Oscillator<div class="tooltip">Audio source generating a periodic waveform</div></button>
-		<button class="menuitem" id="addbufsrc">BufferSource<div class="tooltip">Generates audio from an AudioBuffer</div></button>
-		<button class="menuitem" id="addstrmsrc">MediaStreamSource<div class="tooltip">Audio source from a MediaStream such as live audio input</div><br/>(from Mic)</button>
-		<button class="menuitem" id="addelemsrc">MediaElementSource<div class="tooltip">Audio source from an audio, video, or other media element</div><br/>(from URL)</button>
-		<button class="menuitem" id="addgain">Gain<div class="tooltip">Gain control</div></button>
-		<button class="menuitem" id="addfilt">BiquadFilter<div class="tooltip">Various filters e.g. LPF / HPF / BPF</div></button>
-		<button class="menuitem" id="adddelay">Delay<div class="tooltip">Dynamically adjustable variable delay</div></button>
-		<button class="menuitem" id="addpanner">Panner<div class="tooltip">Spatializing / positioning audio in 3D space</div></button>
-		<button class="menuitem" id="addstereopan">StereoPanner<div class="tooltip">Positioning audio in 2ch stereo</div></button>
-		<button class="menuitem" id="addcomp">DynamicsCompressor<div class="tooltip">Dynamics compression</div></button>
-		<button class="menuitem" id="addshaper">WaveShaper<div class="tooltip">Non-linear waveshaping effect for distortion and other more subtle warming effects</div></button>
-		<button class="menuitem" id="addconv">Convolver<div class="tooltip">Real-time linear effect (such as the sound of a concert hall)</div></button>
-		<button class="menuitem" id="addscrproc">ScriptProcessor<div class="tooltip">Generating or processing audio directly in JavaScript</div></button>
-		<button class="menuitem" id="addanalys">Analyser<div class="tooltip">Spectrum or waveform analyser, Use with music visualizers, or other visualization applications</div></button>
-		<button class="menuitem" id="addsplit">ChannelSplitter<div class="tooltip">Split to the individual channels of an audio stream, means Lch / Rch for stereo source</div></button>
-		<button class="menuitem" id="addmerge">ChannelMerger<div class="tooltip">Combining channels from multiple audio streams into a single audio stream</div></button>
-		<button class="menuitem" id="addcnst">ConstantSource<div class="tooltip">Constant value output</div></button>
-	</div>
-	<button class="mainmenubtn" id="menuctrlbtn">Add Controller</button>
-	<div class="menudropdown" id="menuctrl">
-		<button class="menuitem" id="addknob">Knob</button>
-		<button class="menuitem" id="addslider">Slider</button>
-		<button class="menuitem" id="addtog">ToggleSw</button>
-		<button class="menuitem" id="addkeyb">Keyboard</button>
-		<button class="menuitem" id="addfunc">Function(x,y)</button>
-		<button class="menuitem" id="addauto">Automation</button>
-	</div>
-	<!--<button class="mainmenubtn" id="menuaboutbtn">About</button>-->
-	<div id="popup">
-		<button class="menuitem" id="delnode">Delete</button><br/>
-		<button class="menuitem" id="disnode">Disconnect</button><br/>
-		<button class="menuitem" id="rename">Rename</button>
-	</div>
-	<div id="popup2">
-		<button class="menuitem" id="diswire">Disconnect</button>
-	</div>
+    <button class="mainmenubtn" id="playbtn">Start
+        <!-- <svg width="20" height="10"><polygon id="playpgn" points="10,0 10,10 20,5" fill="green"/></svg>--></button>
+    <!--<button class="mainmenubtn" id="menugraphbtn">Graph</button>-->
+    <div class="menudropdown" id="menugraph">
+        <button class="menuitem" id="newgraph">New Graph</button>
+        <button class="menuitem" id="export">Export as JavaScript file</button>
+        <button class="menuitem" id="link">Link to this graph</button>
+        <button class="menuitem" id="design">Design Mode</button>
+        <button class="menuitem" id="layout">Layout Mode</button>
+        <button class="menuitem" id="test">Play Mode</button>
+    </div>
+    <button class="mainmenubtn" id="menunodebtn">Add Node</button>
+    <div class="menudropdown" id="menunode">
+        <button class="menuitem" id="addosc">Oscillator
+            <div class="tooltip">Audio source generating a periodic waveform</div>
+        </button>
+        <button class="menuitem" id="addbufsrc">BufferSource
+            <div class="tooltip">Generates audio from an AudioBuffer</div>
+        </button>
+        <button class="menuitem" id="addstrmsrc">MediaStreamSource
+            <div class="tooltip">Audio source from a MediaStream such as live audio input</div>
+            <br/>(from Mic)
+        </button>
+        <button class="menuitem" id="addelemsrc">MediaElementSource
+            <div class="tooltip">Audio source from an audio, video, or other media element</div>
+            <br/>(from URL)
+        </button>
+        <button class="menuitem" id="addgain">Gain
+            <div class="tooltip">Gain control</div>
+        </button>
+        <button class="menuitem" id="addfilt">BiquadFilter
+            <div class="tooltip">Various filters e.g. LPF / HPF / BPF</div>
+        </button>
+        <button class="menuitem" id="adddelay">Delay
+            <div class="tooltip">Dynamically adjustable variable delay</div>
+        </button>
+        <button class="menuitem" id="addpanner">Panner
+            <div class="tooltip">Spatializing / positioning audio in 3D space</div>
+        </button>
+        <button class="menuitem" id="addstereopan">StereoPanner
+            <div class="tooltip">Positioning audio in 2ch stereo</div>
+        </button>
+        <button class="menuitem" id="addcomp">DynamicsCompressor
+            <div class="tooltip">Dynamics compression</div>
+        </button>
+        <button class="menuitem" id="addshaper">WaveShaper
+            <div class="tooltip">Non-linear waveshaping effect for distortion and other more subtle warming effects
+            </div>
+        </button>
+        <button class="menuitem" id="addconv">Convolver
+            <div class="tooltip">Real-time linear effect (such as the sound of a concert hall)</div>
+        </button>
+        <button class="menuitem" id="addscrproc">ScriptProcessor
+            <div class="tooltip">Generating or processing audio directly in JavaScript</div>
+        </button>
+        <button class="menuitem" id="addanalys">Analyser
+            <div class="tooltip">Spectrum or waveform analyser, Use with music visualizers, or other visualization
+                applications
+            </div>
+        </button>
+        <button class="menuitem" id="addsplit">ChannelSplitter
+            <div class="tooltip">Split to the individual channels of an audio stream, means Lch / Rch for stereo
+                source
+            </div>
+        </button>
+        <button class="menuitem" id="addmerge">ChannelMerger
+            <div class="tooltip">Combining channels from multiple audio streams into a single audio stream</div>
+        </button>
+        <button class="menuitem" id="addcnst">ConstantSource
+            <div class="tooltip">Constant value output</div>
+        </button>
+    </div>
+    <button class="mainmenubtn" id="menuctrlbtn">Add Controller</button>
+    <div class="menudropdown" id="menuctrl">
+        <button class="menuitem" id="addknob">Knob</button>
+        <button class="menuitem" id="addslider">Slider</button>
+        <button class="menuitem" id="addtog">ToggleSw</button>
+        <button class="menuitem" id="addkeyb">Keyboard</button>
+        <button class="menuitem" id="addfunc">Function(x,y)</button>
+        <button class="menuitem" id="addauto">Automation</button>
+    </div>
+    <!--<button class="mainmenubtn" id="menuaboutbtn">About</button>-->
+    <div id="popup">
+        <button class="menuitem" id="delnode">Delete</button>
+        <br/>
+        <button class="menuitem" id="disnode">Disconnect</button>
+        <br/>
+        <button class="menuitem" id="rename">Rename</button>
+    </div>
+    <div id="popup2">
+        <button class="menuitem" id="diswire">Disconnect</button>
+    </div>
 </div>
-<dialog id="renamedialog" style="border-radius:8px;top:45%;border:1px solid #000;box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5);">Rename Node : <br/><input id="renametext" spellcheck="false"/><br/><button id="renamecancel" style="width:60px">cancel</button><button id="renameok" style="width:60px"> OK </button></dialog>
+<dialog id="renamedialog"
+        style="border-radius:8px;top:45%;border:1px solid #000;box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5);">Rename Node :
+    <br/><input id="renametext" spellcheck="false"/><br/>
+    <button id="renamecancel" style="width:60px">cancel</button>
+    <button id="renameok" style="width:60px"> OK</button>
+</dialog>
 <div id="jspane">
-	<button class="panebutton1" id="jsclose">Close</button>
-	<a class="panebutton2" id="jsdownload" style="color:#fff">Download</a>
-	<div id="files"></div>
-	<textarea id="jsfile" spellcheck="false"></textarea>
+    <button class="panebutton1" id="jsclose">Close</button>
+    <a class="panebutton2" id="jsdownload" style="color:#fff">Download</a>
+    <div id="files"></div>
+    <textarea id="jsfile" spellcheck="false"></textarea>
 </div>
 <div id="urlpane">
-	<button class="panebutton1" id="urlclose">Close</button>
-	<button class="panebutton2" id="urljump">Jump to this link</button>
-	<p>Link to this graph</p>
-	<textarea id="url" spellcheck="false"></textarea>
+    <button class="panebutton1" id="urlclose">Close</button>
+    <button class="panebutton2" id="urljump">Jump to this link</button>
+    <p>Link to this graph</p>
+    <textarea id="url" spellcheck="false"></textarea>
 </div>
 <div id="aboutpane">
-	<button class="panebutton1" id="aboutclose">Close</button>
-	<h2>Introduction</h2>
-	<p><b>WebAudio Designer</b> is a Web Audio API module design tool. By <b>WebAudio Designer</b>,<br/>
-		you can design and test a WebAudio engine module on GUI. It can also export as a JavaScript function.</p>
-	<p>GitHub page : <a href="https://github.com/g200kg/webaudiodesigner">https://github.com/g200kg/webaudiodesigner</a></p>
-	<h2>License</h2>
-	<p>Licensed under MIT License except Impulse Response files.</p>
-	<p>Impulse Response files are licensed under :<br/>
-	<a href="https://www.voxengo.com/impulses/" target="_blank">http://www.voxengo.com/impulses/</a></p>
-	<p>using mml-emitter by <a href="https://twitter.com/mohayonao" target="_blank">@mohayonao</a>:<br/>
-		<a href="https://github.com/mohayonao/mml-emitter" target="_blank">https://github.com/mohayonao/mml-emitter</a>
-	</p>
-	<h2>Usage</h2>
-	<h4>Menu</h4>
-	<table>
-		<tr><th>Menu</th><th>Description</th></tr>
-		<tr><td>Start</td><td>Start all OSC/BufferSource</td></tr>
-		<tr><td>Graph - New</td><td>Graph Clear current graph</td></tr>
-		<tr><td>Graph - Export as JavaScript file</td><td>Export as simple JavaScript code</td></tr>
-		<tr><td>Graph - Link to this graph</td><td>Display a URL that contain current graph</td></tr>
-		<tr><td>Add Node - (Node type)</td><td>Add specified node</td></tr>
-		<tr><td>About</td><td>Display info page</td></tr>
-	</table>
-	<h4>Add node</h4>
-	<p>Select from menu "Add Node".</p>
-	<h4>Delete node</h4>
-	<p>Select node's pop-up menu "Delete" that will be appear when clicking node's upper left corner square.</p>
-	<h4>Make Connection</h4>
-	<ul>
-		<li>Drag "out" to "in" or parameters that has green semicircle.</li>
-		<li>Drag "in" or parameters that has green semicircle to "out".</li>
-	</ul>
-	<h4>Delete Connection</h4>
-	<ul>
-		<li>Click connected "in", "out" or parameter's green semicircle, then select "Disconnection".</li>
-		<li>Click node's upper left corner square and select "Delete" menu. This will disconnect all connection from this node.</li>
-	</ul>
+    <button class="panebutton1" id="aboutclose">Close</button>
+    <h2>Introduction</h2>
+    <p><b>WebAudio Designer</b> is a Web Audio API module design tool. By <b>WebAudio Designer</b>,<br/>
+        you can design and test a WebAudio engine module on GUI. It can also export as a JavaScript function.</p>
+    <p>GitHub page : <a href="https://github.com/g200kg/webaudiodesigner">https://github.com/g200kg/webaudiodesigner</a>
+    </p>
+    <h2>License</h2>
+    <p>Licensed under MIT License except Impulse Response files.</p>
+    <p>Impulse Response files are licensed under :<br/>
+        <a href="https://www.voxengo.com/impulses/" target="_blank">http://www.voxengo.com/impulses/</a></p>
+    <p>using mml-emitter by <a href="https://twitter.com/mohayonao" target="_blank">@mohayonao</a>:<br/>
+        <a href="https://github.com/mohayonao/mml-emitter" target="_blank">https://github.com/mohayonao/mml-emitter</a>
+    </p>
+    <h2>Usage</h2>
+    <h4>Menu</h4>
+    <table>
+        <tr>
+            <th>Menu</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>Start</td>
+            <td>Start all OSC/BufferSource</td>
+        </tr>
+        <tr>
+            <td>Graph - New</td>
+            <td>Graph Clear current graph</td>
+        </tr>
+        <tr>
+            <td>Graph - Export as JavaScript file</td>
+            <td>Export as simple JavaScript code</td>
+        </tr>
+        <tr>
+            <td>Graph - Link to this graph</td>
+            <td>Display a URL that contain current graph</td>
+        </tr>
+        <tr>
+            <td>Add Node - (Node type)</td>
+            <td>Add specified node</td>
+        </tr>
+        <tr>
+            <td>About</td>
+            <td>Display info page</td>
+        </tr>
+    </table>
+    <h4>Add node</h4>
+    <p>Select from menu "Add Node".</p>
+    <h4>Delete node</h4>
+    <p>Select node's pop-up menu "Delete" that will be appear when clicking node's upper left corner square.</p>
+    <h4>Make Connection</h4>
+    <ul>
+        <li>Drag "out" to "in" or parameters that has green semicircle.</li>
+        <li>Drag "in" or parameters that has green semicircle to "out".</li>
+    </ul>
+    <h4>Delete Connection</h4>
+    <ul>
+        <li>Click connected "in", "out" or parameter's green semicircle, then select "Disconnection".</li>
+        <li>Click node's upper left corner square and select "Delete" menu. This will disconnect all connection from
+            this node.
+        </li>
+    </ul>
 </div>
 <div id="loading">Loading...</div>
 
 <dialog id="url-dialog">
-	<form method="dialog">
-		<p><input id="result" placeholder="URL" type="text" size="80"/>
-		</p>
-		<button type="submit" value="ok">Ok</button>
-		<button type="submit" value="cancel">Cancel</button>
-	</form>
+    <form method="dialog">
+        <p><input name="result" placeholder="URL" type="text" size="80"/>
+        </p>
+        <button type="submit" value="ok">Ok</button>
+        <button type="submit" value="cancel">Cancel</button>
+    </form>
 </dialog>
 
 <dialog id="rename-dialog">
-	<form method="dialog">
-		<p><input id="result" type="text" size="40"/><br>
-		</p>
-		<button type="submit" value="ok">Ok</button>
-		<button type="submit" value="cancel">Cancel</button>
-	</form>
+    <form method="dialog">
+        <p><input name="result" type="text" size="40"/><br>
+        </p>
+        <button type="submit" value="ok">Ok</button>
+        <button type="submit" value="cancel">Cancel</button>
+    </form>
 </dialog>
 
 </body>

@@ -189,7 +189,7 @@ module.exports = function (audioGraph) {
     beModified(false);
   });
 
-  ipcRenderer.on('loadGraphFromFile', (event) => {
+  ipcRenderer.on('openPatchFromFile', (event) => {
     loadGraphFromFile();
   });
 
