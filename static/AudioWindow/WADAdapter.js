@@ -24,7 +24,7 @@ module.exports = class WADAdapter {
     }
 
     modAudioGraph() {
-        this.graph.Rename = function (node) {
+        this.graph.Rename = (node) => {
             let nodeTitleElem = node.child[0].elem.childNodes[0];
             showPrompt(this.dom.querySelector('#rename-dialog'), nodeTitleElem.nodeValue)
                 .then((newName) => {
